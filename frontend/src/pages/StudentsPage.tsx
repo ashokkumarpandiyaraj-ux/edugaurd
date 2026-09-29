@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { StudentFilters } from '../components/Filters';
 import { StudentTable } from '../components/StudentTable';
 import { PageHeading, Panel } from '../components/ui';
-import { students } from '../data';
+import { useStudents } from '../lib/students';
 import type { RiskLevel } from '../types';
 import { riskOrder } from '../utils';
 
@@ -12,6 +12,7 @@ function parseRisk(value: string | null): RiskLevel | 'ALL' {
 }
 
 export function StudentsPage() {
+  const { students, loading, error } = useStudents();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [risk, setRisk] = useState<RiskLevel | 'ALL'>(() => parseRisk(searchParams.get('risk')));
@@ -32,6 +33,7 @@ export function StudentsPage() {
     <div className="page-stack page-enter">
       <PageHeading eyebrow="FACULTY WORKSPACE" title="Students" description="Search the representative demo sample and review early-warning context—not final academic outcomes." actions={<span className="sample-count">24 <span>synthetic sample records</span></span>} />
       <Panel className="table-panel">
+        {(loading || error) && <div className="table-footnote">{loading ? 'Loading student records…' : error}</div>}
         <div className="table-panel-heading"><div><strong>Student records</strong><span>Row-level data is synthetic and for demonstration only.</span></div><span className="visible-count">{filtered.length} shown</span></div>
         <StudentFilters query={query} onQuery={setQuery} risk={risk} onRisk={setRisk} course={course} onCourse={setCourse} sortByRisk={sortByRisk} onSort={setSortByRisk} />
         <StudentTable students={filtered} />

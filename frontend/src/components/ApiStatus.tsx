@@ -1,27 +1,83 @@
 import { useEffect, useState } from 'react';
 import { Activity, CircleAlert, ShieldCheck } from 'lucide-react';
-import type { ApiHealth } from '../types';
+
+const API_URL =
+  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+type ApiHealth = {
+  status: string;
+  model_loaded: boolean;
+  model_path?: string;
+  model_error?: string | null;
+};
 
 export function ApiStatus() {
   const [health, setHealth] = useState<ApiHealth | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetch('/health', { headers: { Accept: 'application/json' } })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Health endpoint unavailable');
-        return await response.json() as ApiHealth;
-      })
-      .then((result) => { if (active) setHealth(result); })
-      .catch(() => { if (active) setHealth(null); });
-    return () => { active = false; };
+
+    const checkHealth = async () => {
+      try {
+        const response = await fetch(`${API_URL}/health`, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Health endpoint unavailable');
+        }
+
+        const result = (await response.json()) as ApiHealth;
+
+        if (active) {
+          setHealth(result);
+        }
+      } catch (error) {
+        if (active) {
+          setHealth(null);
+        }
+      }
+    };
+
+    // Check immediately
+    checkHealth();
+
+    // Check again every 10 seconds
+    const interval = window.setInterval(checkHealth, 10000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
-  if (health?.model_available) {
-    return <span className="model-status connected"><ShieldCheck size={14} /> Model connected</span>;
+  // FastAPI + ML model are working
+  if (health?.model_loaded) {
+    return (
+      <span className="model-status connected">
+        <ShieldCheck size={14} />
+        API Connected · ML Model Ready
+      </span>
+    );
   }
-  if (health?.status === 'ok') {
-    return <span className="model-status mock"><Activity size={14} /> Mock data · model not connected</span>;
+
+  // FastAPI is running but model isn't loaded
+  if (health?.status === 'healthy') {
+    return (
+      <span className="model-status mock">
+        <Activity size={14} />
+        API Connected · Model unavailable
+      </span>
+    );
   }
-  return <span className="model-status offline"><CircleAlert size={14} /> Demo data · API offline</span>;
+
+  // Backend cannot be reached
+  return (
+    <span className="model-status offline">
+      <CircleAlert size={14} />
+      API Offline
+    </span>
+  );
 }
