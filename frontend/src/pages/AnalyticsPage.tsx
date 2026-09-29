@@ -4,7 +4,8 @@ import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis
 import { MetricTrendChart } from '../components/MetricTrendChart';
 import { RiskDistributionChart } from '../components/charts';
 import { PageHeading, Panel, SectionHeader, SelectField } from '../components/ui';
-import { courseOptions, students } from '../data';
+import { courseOptions } from '../data';
+import { useStudents } from '../lib/students';
 import type { CohortRiskPoint, RiskLevel, Student } from '../types';
 import { average, clamp } from '../utils';
 
@@ -30,6 +31,7 @@ function buildSeries(rows: Student[], finalWeek: number) {
 }
 
 export function AnalyticsPage() {
+  const { students } = useStudents();
   const [course, setCourse] = useState('ALL');
   const [risk, setRisk] = useState<RiskLevel | 'ALL'>('ALL');
   const [week, setWeek] = useState('ALL');

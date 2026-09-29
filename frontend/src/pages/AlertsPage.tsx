@@ -3,11 +3,12 @@ import { ArrowDownWideNarrow, TriangleAlert } from 'lucide-react';
 import { AlertCards } from '../components/AlertCards';
 import { StudentFilters } from '../components/Filters';
 import { PageHeading, Panel } from '../components/ui';
-import { students } from '../data';
+import { useStudents } from '../lib/students';
 import type { RiskLevel } from '../types';
 import { riskOrder } from '../utils';
 
 export function AlertsPage() {
+  const { students, loading, error } = useStudents();
   const [query, setQuery] = useState('');
   const [risk, setRisk] = useState<RiskLevel | 'ALL'>('ALL');
   const [course, setCourse] = useState('ALL');
@@ -25,6 +26,7 @@ export function AlertsPage() {
       <PageHeading eyebrow="FACULTY REVIEW QUEUE" title="Early Alerts" description="Potential changes in engagement to review with care and student context." actions={<span className="alert-total-pill"><TriangleAlert size={15} /> {alerts.length} signals in demo sample</span>} />
       <div className="alert-caution"><TriangleAlert size={16} /><span><strong>Early-warning signals, not outcomes.</strong> Review context with the student before considering support.</span></div>
       <Panel className="alerts-list-panel">
+        {(loading || error) && <div className="table-footnote">{loading ? 'Loading alerts…' : error}</div>}
         <div className="table-panel-heading"><div><strong>Signals for faculty review</strong><span>Showing medium and high demo signals from the representative sample.</span></div><span className="sort-indicator"><ArrowDownWideNarrow size={14} /> {sortByRisk ? 'Highest score first' : 'Student ID order'}</span></div>
         <StudentFilters query={query} onQuery={setQuery} risk={risk} onRisk={setRisk} course={course} onCourse={setCourse} sortByRisk={sortByRisk} onSort={setSortByRisk} />
         <AlertCards students={alerts} />

@@ -17,7 +17,8 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { engagementTrend, studentsById } from '../data';
+import { engagementTrend } from '../data';
+import { getPredictionHistory, savePrediction, useStudents, type PredictionHistory } from '../lib/students';
 import { EngagementChart } from '../components/charts';
 import {
   Disclaimer,
@@ -29,7 +30,7 @@ import {
 import { formatChange } from '../utils';
 import type { Student } from '../types';
 
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 type Risk = 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -89,6 +90,10 @@ function ProfileContent({ student }: { student: Student }) {
     useState<PredictionResponse | null>(null);
 
   const [errorMessage, setErrorMessage] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
+  const [history, setHistory] = useState<PredictionHistory[]>([]);
+
+  useEffect(() => { getPredictionHistory(student.id).then(setHistory).catch(() => setHistory([])); }, [student.id]);
 
   const trendData = useMemo(
     () =>
@@ -109,6 +114,7 @@ function ProfileContent({ student }: { student: Student }) {
     setAnalysisState('loading');
     setPrediction(null);
     setErrorMessage('');
+    setSaveMessage('');
 
     /*
      * The current demo Student type contains LMS-style fields.
@@ -217,6 +223,17 @@ function ProfileContent({ student }: { student: Student }) {
 
       setPrediction(result);
       setAnalysisState('ready');
+      try {
+        const save = await savePrediction(student.id, result.risk, result.probability, payload);
+        if (save.saved) {
+          setSaveMessage('Prediction saved to Supabase.');
+          setHistory(await getPredictionHistory(student.id));
+        } else {
+          setSaveMessage(save.reason);
+        }
+      } catch (saveError) {
+        setSaveMessage(`Prediction was not saved: ${saveError instanceof Error ? saveError.message : 'database request failed.'}`);
+      }
     } catch (error) {
       console.error(
         'EduGuard prediction error:',
@@ -934,9 +951,10 @@ function ProfileContent({ student }: { student: Student }) {
 export function StudentDetailPage() {
 
   const { id = '' } = useParams();
+  const { students, loading, error } = useStudents();
+  const student = students.find((item) => item.id.toUpperCase() === id.toUpperCase());
 
-  const student =
-    studentsById.get(id.toUpperCase());
+  if (loading) return <Panel className="not-found"><p>Loading student record…</p></Panel>;
 
 
   if (!student) {
@@ -959,6 +977,7 @@ export function StudentDetailPage() {
           Search the representative sample for
           an available student profile.
         </p>
+        {error && <p>{error}</p>}
 
 
         <button
