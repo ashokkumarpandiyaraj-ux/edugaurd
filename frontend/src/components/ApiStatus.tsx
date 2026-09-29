@@ -34,17 +34,15 @@ export function ApiStatus() {
         if (active) {
           setHealth(result);
         }
-      } catch (error) {
+      } catch {
         if (active) {
           setHealth(null);
         }
       }
     };
 
-    // Check immediately
     checkHealth();
 
-    // Check again every 10 seconds
     const interval = window.setInterval(checkHealth, 10000);
 
     return () => {
@@ -53,7 +51,6 @@ export function ApiStatus() {
     };
   }, []);
 
-  // FastAPI + ML model are working
   if (health?.model_loaded) {
     return (
       <span className="model-status connected">
@@ -63,7 +60,6 @@ export function ApiStatus() {
     );
   }
 
-  // FastAPI is running but model isn't loaded
   if (health?.status === 'healthy') {
     return (
       <span className="model-status mock">
@@ -73,7 +69,6 @@ export function ApiStatus() {
     );
   }
 
-  // Backend cannot be reached
   return (
     <span className="model-status offline">
       <CircleAlert size={14} />

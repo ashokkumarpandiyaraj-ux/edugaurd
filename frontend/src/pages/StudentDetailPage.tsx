@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Activity,
@@ -229,7 +229,7 @@ function ProfileContent({ student }: { student: Student }) {
           setSaveMessage('Prediction saved to Supabase.');
           setHistory(await getPredictionHistory(student.id));
         } else {
-          setSaveMessage(save.reason);
+          setSaveMessage(save.reason ?? 'Prediction was not saved.');
         }
       } catch (saveError) {
         setSaveMessage(`Prediction was not saved: ${saveError instanceof Error ? saveError.message : 'database request failed.'}`);
@@ -241,9 +241,9 @@ function ProfileContent({ student }: { student: Student }) {
       );
 
       setErrorMessage(
-        error instanceof Error
+        (error instanceof Error
           ? error.message
-          : 'Unable to connect to the prediction API.'
+          : undefined) ?? 'Unable to analyze student.'
       );
 
       setAnalysisState('error');
@@ -864,6 +864,13 @@ function ProfileContent({ student }: { student: Student }) {
           </Panel>
 
         )}
+
+      {(saveMessage || history.length > 0) && (
+        <Panel className="analysis-result">
+          {saveMessage && <p>{saveMessage}</p>}
+          {history.length > 0 && <p>Prediction history: {history.slice(0, 3).map((item) => `${item.risk_level} ${Math.round(item.probability * 100)}% (${new Date(item.created_at).toLocaleDateString()})`).join(' · ')}</p>}
+        </Panel>
+      )}
 
 
       {/* ======================================================
