@@ -1,0 +1,12 @@
+{
+  "routes": [
+    { "path": "/", "title": "EduGuard AI" },
+    { "path": "/login", "title": "Faculty demo login" },
+    { "path": "/dashboard", "title": "Dashboard" },
+    { "path": "/students", "title": "Students" },
+    { "path": "/students/:id", "title": "Student detail" },
+    { "path": "/alerts", "title": "Early Alerts" },
+    { "path": "/analytics", "title": "Analytics" },
+    { "path": "/model-insights", "title": "Model Insights" }
+  ]
+}

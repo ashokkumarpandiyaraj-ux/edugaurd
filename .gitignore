@@ -1,0 +1,20 @@
+# Node and frontend build output
+frontend/node_modules/
+frontend/dist/
+
+# Python environments and bytecode
+backend/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local secrets and tooling
+.env
+.env.*
+!.env.example
+.vscode/
+.DS_Store
+
+# Trained model artifacts are not part of this mock-data prototype
+
